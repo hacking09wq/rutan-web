@@ -12,6 +12,8 @@ DB_CONFIG = {
     "password": get_env("DB_PASSWORD", get_env("MYSQLPASSWORD")),
     "database": get_env("DB_NAME", get_env("MYSQLDATABASE")),
     "port": int(get_env("DB_PORT", "3306")),
+    "connection_timeout": 10,
+    "use_pure": True,
 }
 
 SECRET_KEY = get_env("SECRET_KEY", "rutan_secret")
