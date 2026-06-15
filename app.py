@@ -28,7 +28,11 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 
 def get_db():
     """Membuat koneksi ke database MySQL."""
-    return mysql.connector.connect(**config.DB_CONFIG)
+    try:
+        return mysql.connector.connect(**config.DB_CONFIG)
+    except mysql.connector.Error as err:
+        print("DATABASE CONNECTION ERROR:", err)
+        raise
 
 def allowed_file(filename, allowed_types):
     """Cek apakah ekstensi file diperbolehkan."""
