@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifikasi OTP - Rutan Pangkalan Brandan</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-blue: #3f51b5;
+            --bg-color: #f0f2f5;
+            --text-dark: #2c3e50;
+        }
+
+        body { 
+            background-color: var(--bg-color); 
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            font-family: 'Poppins', sans-serif; 
+            margin: 0;
+        }
+
+        .otp-container {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+        }
+
+        .otp-card { 
+            background: #ffffff; 
+            padding: 40px 30px; 
+            border-radius: 20px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05); 
+            text-align: center;
+        }
+
+        .brand-logo {
+            width: 80px;
+            margin-bottom: 20px;
+        }
+
+        .otp-card h4 {
+            color: #1a237e;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .otp-card p {
+            color: #666;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+
+        /* Notifikasi Info Biru (Sesuai Gambar) */
+        .alert-info-custom {
+            background-color: #e8eaf6;
+            color: #3f51b5;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            border: none;
+        }
+
+        /* Badge Timer */
+        #otp-timer {
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 50px;
+            padding: 5px 15px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        /* Input OTP (Sesuai Gambar) */
+        .otp-input { 
+            font-size: 2.5rem; 
+            text-align: center; 
+            letter-spacing: 15px; 
+            font-weight: 700; 
+            border: 2px solid #3f51b5; 
+            border-radius: 12px; 
+            padding: 10px;
+            color: #d1d9e6; /* Warna placeholder abu-abu muda */
+            margin-bottom: 25px;
+            transition: all 0.3s;
+        }
+
+        .otp-input:focus { 
+            box-shadow: 0 0 0 4px rgba(63, 81, 181, 0.1); 
+            border-color: var(--primary-blue);
+            color: var(--text-dark);
+            outline: none;
+        }
+
+        /* Tombol Verifikasi (Sesuai Gambar) */
+        .btn-verify { 
+            background-color: var(--primary-blue);
+            color: white; 
+            padding: 12px; 
+            border-radius: 12px; 
+            width: 100%; 
+            font-weight: 600; 
+            border: none;
+            text-transform: uppercase;
+            box-shadow: 0 4px 10px rgba(63, 81, 181, 0.3);
+        }
+
+        .btn-verify:hover {
+            background-color: #303f9f;
+            color: white;
+        }
+
+        /* Footer Links (Sesuai Gambar) */
+        .footer-link {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 25px;
+            display: block;
+            text-decoration: none;
+        }
+
+        .resend-link {
+            font-weight: 700;
+            color: #1a237e;
+            text-decoration: none;
+        }
+
+        .cancel-link {
+            color: #e53935;
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-top: 15px;
+            display: block;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="otp-container">
+        <div class="otp-card">
+            <img src="{{ url_for('static', filename='rutan.jpg') }}" class="brand-logo" alt="Logo">
+            
+            <h4>Verifikasi Keamanan</h4>
+            <p>Masukkan <strong>6 digit kode OTP</strong> yang telah dikirim ke nomor WhatsApp admin Anda untuk melanjutkan.</p>
+
+            <div id="otp-timer">
+                Sisa Waktu: <span id="countdown">05:00</span>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert-info-custom">
+                      <i class="fas fa-info-circle"></i> {{ message }}
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            <form method="POST" id="otp-form">
+                <input type="text" 
+                       name="otp" 
+                       id="otp-field"
+                       class="form-control otp-input" 
+                       maxlength="6" 
+                       placeholder="000000" 
+                       required 
+                       autofocus 
+                       autocomplete="off"
+                       oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                
+                <button type="submit" class="btn btn-verify" id="btn-submit">
+                    Verifikasi Login
+                </button>
+            </form>
+            
+            <div class="footer-link">
+                Tidak menerima kode? <a href="{{ url_for('login') }}" class="resend-link">Kirim Ulang</a>
+            </div>
+
+            <a href="{{ url_for('logout') }}" class="cancel-link">
+                <i class="fas fa-times-circle me-1"></i> Batalkan Login
+            </a>
+        </div>
+        
+        <p class="text-center mt-4 text-muted small">
+            &copy; 2026 Rutan Pangkalan Brandan - Secure Admin Panel
+        </p>
+    </div>
+
+    <script>
+        // Logika Timer 5 Menit
+        const expiryTime = {{ expiry_timestamp | float }};
+
+        function updateCountdown() {
+            const now = Math.floor(Date.now() / 1000);
+            const timeLeft = Math.floor(expiryTime - now);
+
+            if (timeLeft <= 0) {
+                document.getElementById('countdown').innerHTML = "EXPIRED";
+                document.getElementById('countdown').classList.add('text-danger');
+                document.getElementById('btn-submit').innerHTML = 'KODE EXPIRED - KIRIM ULANG';
+                document.getElementById('btn-submit').style.backgroundColor = '#d32f2f';
+                return;
+            }
+
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('countdown').innerHTML = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+    </script>
+</body>
+</html>

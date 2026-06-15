@@ -1,0 +1,264 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<style>
+:root {
+    --primary: #0f172a;
+    --accent: #f59e0b;
+    --bg: #f8fafc;
+    --text-muted: #64748b;
+}
+
+body {
+    background: var(--bg);
+    font-family: 'Inter', sans-serif;
+}
+
+/* LOADER */
+.loader-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,0.96);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 9999;
+    transition: 0.5s;
+}
+.loader-hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+.loader-spinner {
+    width: 45px;
+    height: 45px;
+    border: 4px solid #e5e7eb;
+    border-top: 4px solid var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loader-text {
+    margin-top: 12px;
+    font-weight: 600;
+    color: var(--primary);
+    font-size: 0.9rem;
+}
+
+/* HERO */
+.gallery-hero {
+    padding: 6rem 0 4rem;
+    text-align: center;
+    background: linear-gradient(180deg, #ffffff, #f1f5f9);
+    border-bottom: 1px solid #e2e8f0;
+}
+.gallery-title {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: var(--primary);
+}
+.gallery-subtitle {
+    max-width: 600px;
+    margin: auto;
+    color: var(--text-muted);
+    line-height: 1.7;
+}
+
+/* GRID */
+.gallery-wrapper {
+    margin-top: 2rem;
+}
+.gallery-item {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    height: 260px;
+    background: #000;
+    cursor: pointer;
+    transition: all 0.35s ease;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+.gallery-item:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 35px rgba(0,0,0,0.15);
+}
+
+.gallery-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: 0.5s ease;
+}
+.gallery-item:hover .gallery-img {
+    transform: scale(1.08);
+    filter: brightness(0.75);
+}
+
+/* OVERLAY */
+.gallery-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: column;
+    padding: 18px;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    opacity: 0;
+    transition: 0.4s;
+}
+.gallery-item:hover .gallery-overlay {
+    opacity: 1;
+}
+
+.gallery-caption {
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transform: translateY(10px);
+    transition: 0.3s;
+}
+.gallery-item:hover .gallery-caption {
+    transform: translateY(0);
+}
+
+/* ICON */
+.zoom-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    color: white;
+    font-size: 1.6rem;
+    transition: 0.3s;
+}
+.gallery-item:hover .zoom-icon {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* MODAL */
+.modal-content {
+    background: transparent;
+    border: none;
+}
+.modal-img {
+    max-height: 85vh;
+    border-radius: 10px;
+}
+.modal-caption {
+    margin-top: 10px;
+    color: white;
+    background: rgba(0,0,0,0.6);
+    padding: 6px 14px;
+    border-radius: 20px;
+    display: inline-block;
+    font-size: 0.9rem;
+}
+.btn-close-custom {
+    position: absolute;
+    top: -30px;
+    right: 0;
+    color: white;
+    font-size: 1.5rem;
+    background: none;
+    border: none;
+}
+
+/* EMPTY */
+.empty-box {
+    padding: 60px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+
+/* ANIMATION */
+.fade-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.6s forwards;
+}
+@keyframes fadeUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+</style>
+
+<div id="galleryLoader" class="loader-overlay">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Memuat Galeri...</div>
+</div>
+
+<!-- HERO -->
+<section class="gallery-hero">
+    <div class="container">
+        <h6 class="text-warning fw-bold mb-2 text-uppercase">Dokumentasi Kegiatan</h6>
+        <h1 class="gallery-title mb-3">Galeri Rutan</h1>
+        <p class="gallery-subtitle">
+            Dokumentasi kegiatan pembinaan, pelayanan, dan aktivitas harian
+            di Rutan Kelas IIB Pangkalan Brandan secara transparan dan profesional.
+        </p>
+    </div>
+</section>
+
+<!-- GALLERY -->
+<section class="py-5">
+    <div class="container gallery-wrapper">
+        <div class="row g-4">
+            {% if photos %}
+                {% for photo in photos %}
+                <div class="col-lg-4 col-md-6 fade-up" style="animation-delay: {{ loop.index0 * 0.1 }}s;">
+                    <div class="gallery-item" data-bs-toggle="modal" data-bs-target="#modal{{ photo.id }}">
+                        <img src="{{ url_for('static', filename='uploads/' + photo.image) }}" class="gallery-img">
+
+                        <div class="zoom-icon">
+                            <i class="fas fa-expand"></i>
+                        </div>
+
+                        <div class="gallery-overlay">
+                            <div class="gallery-caption">{{ photo.title }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODAL -->
+                <div class="modal fade" id="modal{{ photo.id }}">
+                    <div class="modal-dialog modal-xl modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-body text-center position-relative">
+                                <button class="btn-close-custom" data-bs-dismiss="modal">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                <img src="{{ url_for('static', filename='uploads/' + photo.image) }}" class="modal-img">
+                                <div class="modal-caption">{{ photo.title }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="col-12 text-center">
+                <div class="empty-box">
+                    <i class="fas fa-images fa-3x text-secondary mb-3"></i>
+                    <h5 class="fw-bold">Belum Ada Foto</h5>
+                    <p class="text-muted">Galeri belum tersedia saat ini.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<script>
+window.addEventListener("load", function() {
+    setTimeout(() => {
+        document.getElementById("galleryLoader").classList.add("loader-hidden");
+    }, 500);
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,432 @@
+{% extends "admin/layout.html" %}
+
+{% block admin_content %}
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        /* Palet Warna Modern Admin (Konsisten) */
+        --admin-primary: #4f46e5;      /* Indigo 600 */
+        --admin-primary-dark: #1e1b4b; /* Deep Indigo / Navy */
+        --admin-secondary: #0ea5e9;    /* Sky Blue 500 */
+        --admin-accent: #f59e0b;       /* Amber / Gold */
+        --admin-success: #10b981;      /* Emerald Green */
+        
+        --bg-body: #f1f5f9;            /* Slate 100 */
+        --surface: #ffffff;
+        --text-main: #1e293b;          /* Slate 800 */
+        --text-muted: #64748b;         /* Slate 500 */
+        
+        --radius-lg: 16px;
+        --radius-xl: 24px;
+        --shadow-card: 0 10px 25px rgba(30, 64, 175, 0.05);
+        --shadow-hover: 0 20px 40px rgba(30, 64, 175, 0.12);
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+        color: var(--text-main);
+    }
+
+    /* --- 0. LOADER KEKINIAN (Konsisten) --- */
+    .loader-overlay {
+        position: fixed; inset: 0;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        z-index: 99999;
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+    .loader-hidden { opacity: 0; visibility: hidden; }
+    
+    .loader-spinner {
+        width: 60px; height: 60px;
+        border-radius: 50%;
+        border: 4px solid #e0e7ff;
+        border-top-color: var(--admin-primary);
+        animation: spin 1s linear infinite;
+    }
+    .loader-text {
+        margin-top: 20px; font-weight: 700; font-size: 1rem;
+        color: var(--admin-primary); letter-spacing: 2px; text-transform: uppercase;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* --- PAGE HEADER BANNER --- */
+    .admin-page-header {
+        background: linear-gradient(135deg, var(--admin-primary-dark) 0%, var(--admin-primary) 100%);
+        border-radius: var(--radius-lg);
+        padding: 2.5rem 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 15px 30px -5px rgba(79, 70, 229, 0.2);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .admin-page-header::after {
+        content: ''; position: absolute; top: -50%; right: -5%;
+        width: 300px; height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+        border-radius: 50%; pointer-events: none;
+    }
+
+    .header-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 5px; letter-spacing: -0.5px; }
+    .header-subtitle { color: #e0e7ff; font-size: 0.95rem; margin-bottom: 0; font-weight: 400; }
+
+    /* Breadcrumb Custom */
+    .breadcrumb-modern {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 8px 16px;
+        border-radius: 50px;
+        margin: 0;
+    }
+    .breadcrumb-modern a { color: #e0e7ff; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+    .breadcrumb-modern a:hover { color: white; }
+    .breadcrumb-modern .active { color: var(--admin-accent); font-weight: 700; font-size: 0.9rem; }
+    .breadcrumb-modern .divider { color: rgba(255,255,255,0.4); margin: 0 8px; }
+
+    /* --- MAIN CARD (SPLIT) --- */
+    .card-modern {
+        background: var(--surface);
+        border-radius: var(--radius-xl);
+        border: none;
+        box-shadow: var(--shadow-card);
+        overflow: hidden;
+        display: flex;
+        flex-wrap: wrap;
+        transition: box-shadow 0.3s ease;
+    }
+    .card-modern:hover {
+        box-shadow: var(--shadow-hover);
+    }
+
+    /* --- LEFT SIDE (FORM) --- */
+    .form-panel {
+        padding: 3.5rem 3rem;
+        flex: 1;
+        background: var(--surface);
+    }
+
+    .form-group-modern { margin-bottom: 2.5rem; }
+
+    .label-modern {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        margin-bottom: 0.75rem;
+        display: block;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-icon-box {
+        position: absolute;
+        left: 20px;
+        color: var(--admin-primary);
+        font-size: 1.3rem;
+        z-index: 2;
+    }
+
+    .input-modern {
+        width: 100%;
+        padding: 1.2rem 1.2rem 1.2rem 3.8rem; /* Ruang untuk ikon */
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text-main);
+        background: var(--bg-body);
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .input-modern:focus {
+        background: var(--surface);
+        border-color: var(--admin-primary);
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        outline: none;
+    }
+
+    /* Hilangkan panah up/down di input number */
+    .input-modern::-webkit-outer-spin-button,
+    .input-modern::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    .btn-update {
+        background: linear-gradient(135deg, var(--admin-primary) 0%, #3730a3 100%);
+        color: white;
+        padding: 1.2rem 2rem;
+        border-radius: 14px;
+        border: none;
+        font-weight: 700;
+        width: 100%;
+        font-size: 1.05rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+    }
+
+    .btn-update:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 25px rgba(79, 70, 229, 0.3);
+        color: white;
+    }
+
+    /* --- RIGHT SIDE (PREVIEW) --- */
+    .preview-panel {
+        flex: 0 0 42%;
+        background: linear-gradient(135deg, var(--admin-primary-dark) 0%, var(--admin-primary) 100%);
+        color: white;
+        padding: 3rem;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        overflow: hidden;
+    }
+
+    /* Dekorasi Background Halus */
+    .deco-circle {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    .deco-1 { width: 400px; height: 400px; top: -150px; right: -150px; }
+    .deco-2 { width: 250px; height: 250px; bottom: -80px; left: -80px; }
+
+    .preview-card {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        width: 100%;
+        max-width: 340px;
+        position: relative;
+        z-index: 10;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+    }
+
+    .stat-number {
+        font-family: 'Poppins', sans-serif;
+        font-size: 5rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(to bottom, #ffffff, #e0e7ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #cbd5e1;
+        font-weight: 600;
+    }
+
+    .live-badge {
+        margin-top: 2.5rem;
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        padding: 8px 18px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    
+    .live-dot {
+        width: 10px; height: 10px; background: #34d399; border-radius: 50%;
+        box-shadow: 0 0 12px #34d399;
+        animation: pulse-green 2s infinite;
+    }
+
+    @keyframes pulse-green { 
+        0% { opacity: 0.5; transform: scale(0.8); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); } 
+        50% { opacity: 1; transform: scale(1.1); box-shadow: 0 0 0 6px rgba(52, 211, 153, 0); } 
+        100% { opacity: 0.5; transform: scale(0.8); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); } 
+    }
+    
+    /* Responsive */
+    @media (max-width: 991px) {
+        .preview-panel { flex: 0 0 100%; padding: 3rem 2rem; }
+        .form-panel { padding: 2.5rem 2rem; }
+    }
+</style>
+
+<div id="globalLoader" class="loader-overlay">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Memuat Data</div>
+</div>
+
+<div class="container-fluid px-4 py-4">
+    
+    <div class="row justify-content-center">
+        <div class="col-xl-10">
+            
+            <div class="admin-page-header flex-column flex-md-row text-center text-md-start">
+                <div class="mb-3 mb-md-0 position-relative z-1">
+                    <h1 class="header-title"><i class="fas fa-chart-pie me-2" style="color: var(--admin-accent);"></i>Statistik Warga Binaan</h1>
+                    <p class="header-subtitle">Panel kontrol pembaruan data hunian rutan secara real-time.</p>
+                </div>
+                <div class="position-relative z-1 d-none d-md-block">
+                    <div class="breadcrumb-modern">
+                        <a href="{{ url_for('admin_dashboard') }}">Home</a>
+                        <span class="divider">/</span>
+                        <span class="active">Statistik</span>
+                    </div>
+                </div>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center bg-white px-4 py-3">
+                            <div class="rounded-circle p-2 bg-{{ category }} bg-opacity-10 text-{{ category }} me-3">
+                                <i class="fas fa-check-circle fs-5"></i>
+                            </div>
+                            <div class="fw-bold text-dark">{{ message }}</div>
+                            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="card-modern">
+                <div class="form-panel">
+                    <div class="d-flex align-items-center mb-4 pb-2 border-bottom">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3 text-primary d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="fas fa-pen fs-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold text-dark m-0">Update Data Penghuni</h4>
+                            <span class="text-muted small">Masukkan jumlah terbaru warga binaan.</span>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('admin_wbp') }}" onsubmit="showLoader()">
+                        <div class="form-group-modern">
+                            <label for="wbp_count" class="label-modern">Total Penghuni Saat Ini</label>
+                            <div class="input-wrapper">
+                                <div class="input-icon-box">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <input type="number" 
+                                       class="input-modern" 
+                                       id="wbp_count" 
+                                       name="wbp_count" 
+                                       value="{{ current_count }}" 
+                                       placeholder="0"
+                                       required>
+                            </div>
+                            <div class="mt-3 text-muted small d-flex align-items-center bg-light p-2 rounded-3 border">
+                                <i class="fas fa-info-circle me-2 text-primary"></i>
+                                Data ini akan langsung sinkron dan diperbarui di halaman depan website.
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-update">
+                            <i class="fas fa-cloud-upload-alt fs-5"></i> Simpan & Publikasikan
+                        </button>
+                    </form>
+                </div>
+
+                <div class="preview-panel">
+                    <div class="deco-circle deco-1"></div>
+                    <div class="deco-circle deco-2"></div>
+
+                    <div class="preview-card">
+                        <div class="text-white-50 text-uppercase small fw-bold tracking-wide mb-3" style="letter-spacing: 2px;">
+                            <i class="fas fa-eye me-1"></i> Live Preview
+                        </div>
+                        <div class="stat-number counter-value" data-target="{{ current_count }}">{{ current_count }}</div>
+                        <div class="stat-label">Warga Binaan Pemasyarakatan</div>
+                        
+                        <div class="live-badge">
+                            <span class="live-dot"></span>
+                            <span>Sistem Sinkron Online</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 text-white-50 small fw-medium">
+                        <i class="far fa-clock me-1"></i> Terakhir diupdate oleh Admin Sistem
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 1. LOADER FUNCTIONS ---
+    function showLoader() {
+        const loader = document.getElementById('globalLoader');
+        if(loader) loader.classList.remove('loader-hidden');
+    }
+
+    window.addEventListener("load", function() {
+        const loader = document.getElementById('globalLoader');
+        setTimeout(() => loader.classList.add("loader-hidden"), 500); 
+    });
+
+    // Show Loader on Link Click (Page Transition)
+    document.addEventListener("DOMContentLoaded", function() {
+        const links = document.querySelectorAll("a");
+        links.forEach(link => {
+            link.addEventListener("click", function(e) {
+                const href = this.getAttribute("href");
+                const target = this.getAttribute("target");
+                const onclick = this.getAttribute("onclick"); 
+                const toggle = this.getAttribute("data-bs-toggle");
+                
+                if (href && href !== "#" && href !== "" && target !== "_blank" && !onclick && !toggle) {
+                    showLoader();
+                }
+            });
+        });
+
+        // --- 2. COUNTER ANIMATION ---
+        const counters = document.querySelectorAll('.counter-value');
+        counters.forEach(counter => {
+            const updateCount = () => {
+                const target = +counter.getAttribute('data-target');
+                const count = +counter.innerText;
+                const increment = target / 40; 
+                
+                if (count < target) {
+                    counter.innerText = Math.ceil(count + increment);
+                    setTimeout(updateCount, 25);
+                } else {
+                    counter.innerText = target;
+                }
+            };
+            updateCount();
+        });
+    });
+</script>
+{% endblock %}
