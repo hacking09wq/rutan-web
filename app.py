@@ -10,7 +10,7 @@ from datetime import datetime
 
 import config
 
-print("DB CONFIG:", config.DB_CONFIG)
+
 
 app = Flask(__name__)
 app.secret_key = config.SECRET_KEY
